@@ -149,7 +149,6 @@ async def init():
                 "Reply to a user's forwarded message to unblock him from the bot"
             )
 
-
     @app.on_message(
         filters.command("stats") & filters.user(SUDO_USERS)
     )
@@ -214,8 +213,12 @@ async def init():
         except:
             pass
 
-@app.on_message(filters.private)
-async def incoming_private(_, message):
+    @app.on_message(filters.private)
+    async def incoming_private(_, message):
+        # Check if the message is edited or not
+        if message.edited:
+            return
+
         user_id = message.from_user.id
         if await mongo.is_banned_user(user_id):
             return
