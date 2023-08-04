@@ -214,8 +214,8 @@ async def init():
         except:
             pass
 
-    @app.on_message(filters.private & ~filters.edited)
-    async def incoming_private(_, message):
+@app.on_message(filters.private)
+async def incoming_private(_, message):
         user_id = message.from_user.id
         if await mongo.is_banned_user(user_id):
             return
