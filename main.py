@@ -196,6 +196,7 @@ async def init():
                 await asyncio.sleep(flood_time)
             except Exception:
                 pass
+
         try:
             await message.reply_text(
                 f"**Broadcasted Message to {susr} Users.**"
@@ -208,32 +209,37 @@ async def init():
         user_id = message.from_user.id
         if await mongo.is_banned_user(user_id):
             return
-
-        replied_message = message.reply_to_message
-        if not replied_message or not replied_message.forward_from:
-            return await message.reply_text(
-                "Please reply to forwarded messages only."
-            )
-
-        replied_user_id = replied_message.forward_from.id
         if user_id in SUDO_USERS:
-            if (
-                message.text == "/unblock"
-                or message.text == "/block"
-                or message.text == "/broadcast"
-            ):
-                return
-            try:
-                return await app.copy_message(
-                    replied_user_id,
-                    message.chat.id,
-                    message.message_id,
-                )
-            except Exception as e:
-                print(e)
-                return await message.reply_text(
-                    "Failed to send the message, User might have blocked the bot or something wrong happened. Please check logs"
-                )
+            if message.reply_to_message:
+                if (
+                    message.text == "/unblock"
+                    or message.text == "/block"
+                    or message.text == "/broadcast"
+                ):
+                    return
+                if not message.reply_to_message.forward_sender_name:
+                    return await message.reply_text(
+                        "Please reply to forwarded messages only."
+                    )
+                replied_id = message.reply_to_message_id
+                try:
+                    replied_user_id = save[replied_id]
+                except Exception as e:
+                    print(e)
+                    return await message.reply_text(
+                        "Failed to fetch user. You might've restarted bot or some error happened. Please check logs"
+                    )
+                try:
+                    return await app.copy_message(
+                        replied_user_id,
+                        message.chat.id,
+                        message.message_id,
+                    )
+                except Exception as e:
+                    print(e)
+                    return await message.reply_text(
+                        "Failed to send the message, User might have blocked the bot or something wrong happened. Please check logs"
+                    )
         else:
             if await mongo.is_group():
                 try:
@@ -260,30 +266,36 @@ async def init():
         group=grouplist,
     )
     async def incoming_groups(_, message):
-        replied_message = message.reply_to_message
-        if not replied_message or not replied_message.forward_from:
-            return await message.reply_text(
-                "Please reply to forwarded messages only."
-            )
-
-        replied_user_id = replied_message.forward_from.id
-        if (
-            message.text == "/unblock"
-            or message.text == "/block"
-            or message.text == "/broadcast"
-        ):
-            return
-        try:
-            return await app.copy_message(
-                replied_user_id,
-                message.chat.id,
-                message.message_id,
-            )
-        except Exception as e:
-            print(e)
-            return await message.reply_text(
-                "Failed to send the message, User might have blocked the bot or something wrong happened. Please check logs"
-            )
+        if message.reply_to_message:
+            if (
+                message.text == "/unblock"
+                or message.text == "/block"
+                or message.text == "/broadcast"
+            ):
+                return
+            replied_id = message.reply_to_message_id
+            if not message.reply_to_message.forward_sender_name:
+                return await message.reply_text(
+                    "Please reply to forwarded messages only."
+                )
+            try:
+                replied_user_id = save[replied_id]
+            except Exception as e:
+                print(e)
+                return await message.reply_text(
+                    "Failed to fetch user. You might've restarted bot or some error happened. Please check logs"
+                )
+            try:
+                return await app.copy_message(
+                    replied_user_id,
+                    message.chat.id,
+                    message.message_id,
+                )
+            except Exception as e:
+                print(e)
+                return await message.reply_text(
+                    "Failed to send the message, User might have blocked the bot or something wrong happened. Please check logs"
+                )
 
     print("[LOG] - Yukki Chat Bot Started")
     await idle()
