@@ -204,7 +204,7 @@ async def init():
         except:
             pass
 
-    @app.on_message(filters.private & ~filters.edited)
+    @app.on_message(filters.private)
     async def incoming_private(_, message):
         user_id = message.from_user.id
         if await mongo.is_banned_user(user_id):
@@ -262,7 +262,7 @@ async def init():
                         pass
 
     @app.on_message(
-        filters.group & ~filters.edited & filters.user(SUDO_USERS),
+        filters.group & filters.user(SUDO_USERS),
         group=grouplist,
     )
     async def incoming_groups(_, message):
