@@ -149,6 +149,7 @@ async def init():
                 "Reply to a user's forwarded message to unblock him from the bot"
             )
 
+
     @app.on_message(
         filters.command("stats") & filters.user(SUDO_USERS)
     )
